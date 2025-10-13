@@ -1,12 +1,12 @@
 import streamlit as st
-import psycopg2
+import psycopg
 import pandas as pd
 
 st.title("🟠 BTC News")
 
 def get_btc(author=None):
     dbconn = st.secrets["DBCONN"]
-    conn = psycopg2.connect(dbconn)
+    conn = psycopg.connect(dbconn)
 
     if author:
         sql = """
