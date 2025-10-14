@@ -1,2 +1,5 @@
 .env
 .streamlit
+.devcontainer
+package/
+*.zip

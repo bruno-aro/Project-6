@@ -28,3 +28,16 @@ st.write("You selected:", option)
 if option is not None:
     data = get_data(option)
     st.dataframe(data)
+
+
+@st.dialog("Sign up")
+def email_form():
+    name = st.text_input("Name")
+    email = st.text_input("Email")
+
+
+with st.sidebar:
+    messages = st.container(height=300)
+    if prompt := st.chat_input("Say something"):
+        messages.chat_message("user").write(prompt)
+        messages.chat_message("assistant").write(f"Echo: {prompt}")
