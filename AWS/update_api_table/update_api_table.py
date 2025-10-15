@@ -1,25 +1,42 @@
 import os
 import psycopg
-import datetime as dt
+import datetime as dt 
 
 def update_db(event, context):
-    data = event
-    
     dbconn = os.getenv("DBCONN")
     conn = psycopg.connect(dbconn)
     cur = conn.cursor()
 
-    # convert to date datatype in second function to avoid json type limitations between functions
-    data[0] = dt.datetime.fromtimestamp(data[0])
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS btc_data_news(
+            id INTEGER PRIMARY KEY,
+            title TEXT,
+            author TEXT,
+            link TEXT,
+            published_date DATE
+        );
+    ''')
+
+    cur.execute("SELECT COALESCE(MAX(id), 0) + 1 FROM btc_data_news;")
+    next_id = cur.fetchone()[0]
 
     cur.execute(
         '''
-            INSERT INTO weather_data(date, city, temp, feels, description)
-            VALUES (%s, %s, %s, %s, %s);
-        ''', 
-        data
+        INSERT INTO btc_data_news (id, title, author, link, published_date)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (id) DO NOTHING;
+        ''',
+        [
+            next_id,
+            event.get("title", ""),
+            event.get("author", ""),
+            event.get("link", ""),
+            dt.datetime.now(dt.timezone.utc).date()
+        ]
     )
 
     conn.commit()
     cur.close()
     conn.close()
+
+    return {"statusCode": 200, "id": next_id}
