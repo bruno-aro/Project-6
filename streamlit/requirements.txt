@@ -2,3 +2,4 @@ streamlit
 psycopg
 psycopg-binary
 pandas
+google-genai
