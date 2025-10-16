@@ -1,42 +1,35 @@
 import os
 import psycopg
-import datetime as dt 
+from datetime import datetime
 
-def update_db(event, context):
+def update_db(event,context):
+    row = event 
+
     dbconn = os.getenv("DBCONN")
     conn = psycopg.connect(dbconn)
     cur = conn.cursor()
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS btc_data_news(
-            id INTEGER PRIMARY KEY,
-            title TEXT,
-            author TEXT,
-            link TEXT,
-            published_date DATE
-        );
-    ''')
-
-    cur.execute("SELECT COALESCE(MAX(id), 0) + 1 FROM btc_data_news;")
-    next_id = cur.fetchone()[0]
-
     cur.execute(
         '''
-        INSERT INTO btc_data_news (id, title, author, link, published_date)
-        VALUES (%s, %s, %s, %s, %s)
-        ON CONFLICT (id) DO NOTHING;
+        INSERT INTO alpha_vantage_daily (trade_date, open, high, low, close, volume)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        ON CONFLICT (trade_date) DO UPDATE SET
+            open = EXCLUDED.open,
+            high = EXCLUDED.high,
+            low = EXCLUDED.low,
+            close = EXCLUDED.close,
+            volume = EXCLUDED.volume;
         ''',
         [
-            next_id,
-            event.get("title", ""),
-            event.get("author", ""),
-            event.get("link", ""),
-            dt.datetime.now(dt.timezone.utc).date()
+            datetime.strptime( row[0], "%Y-%m-%d"),
+            float(row[1]),
+            float(row[2]),
+            float(row[3]),
+            float(row[4]),
+            float(row[5])
         ]
     )
 
     conn.commit()
     cur.close()
     conn.close()
-
-    return {"statusCode": 200, "id": next_id}

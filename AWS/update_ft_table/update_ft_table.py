@@ -1,38 +1,32 @@
 import os
 import psycopg
-import datetime as dt 
+from datetime import datetime
 
-def update_db(event, context):
+def update_db(event,context):
     dbconn = os.getenv("DBCONN")
     conn = psycopg.connect(dbconn)
     cur = conn.cursor()
 
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS btc_data_news(
-            id INTEGER PRIMARY KEY,
-            title TEXT,
-            author TEXT,
-            link TEXT,
-            published_date DATE
-        );
-    ''')
+    # Extract data from list
+    title = event[0]
+    link = event[1]
+    author = event[2]
+    date_str = event[3]
 
+    # Convert string to datetime object
+    published_date = datetime.strptime(date_str, "%b %d, %Y - %H:%M").date()
+
+    # Generate new ID
     cur.execute("SELECT COALESCE(MAX(id), 0) + 1 FROM btc_data_news;")
-    next_id = cur.fetchone()[0]
+    new_id = cur.fetchone()[0]
 
+    # Insert data with ID
     cur.execute(
-        '''
+        """
         INSERT INTO btc_data_news (id, title, author, link, published_date)
         VALUES (%s, %s, %s, %s, %s)
-        ON CONFLICT (id) DO NOTHING;
-        ''',
-        [
-            next_id,
-            row["title"],
-            row["author"],
-            row["link"],
-            row["published_date"].date()
-        ]
+        """,
+        (new_id, title, author, link, published_date)
     )
 
     conn.commit()

@@ -18,7 +18,6 @@ def get_data(event, context):
 
     response_json = response.json()
 
-    # Handle rate limits / errors gracefully
     time_series = response_json.get("Time Series (Digital Currency Daily)", {})
     if not time_series:
         return None
@@ -26,10 +25,10 @@ def get_data(event, context):
     latest_date = sorted(time_series.keys())[-1]
     latest_data = time_series[latest_date]
 
-    open_price  = latest_data.get("1a. open (USD)")
-    high_price  = latest_data.get("2a. high (USD)")
-    low_price   = latest_data.get("3a. low (USD)")
-    close_price = latest_data.get("4a. close (USD)")
+    open_price  = latest_data.get("1. open")
+    high_price  = latest_data.get("2. high")
+    low_price   = latest_data.get("3. low")
+    close_price = latest_data.get("4. close")
     volume      = latest_data.get("5. volume")
 
     return [latest_date, open_price, high_price, low_price, close_price, volume]
