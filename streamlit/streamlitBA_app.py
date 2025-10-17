@@ -59,10 +59,10 @@ metric = st.selectbox(
 # --- Create chart ---
 chart = (
     alt.Chart(df)
-    .mark_line(color="#4c78a8")
+    .mark_line()
     .encode(
-        x=alt.X("trade_date:T", title="Date"),
-        y=alt.Y(f"{metric}:Q", title=f"{metric.capitalize()}"),
+        x=alt.X("yearmonthdate(trade_date):T", title="Date"),  # force day granularity
+        y=alt.Y(f"{metric}:Q", title=metric.capitalize(), axis=alt.Axis(format="~s")),
         tooltip=[
             alt.Tooltip("trade_date:T", title="Date"),
             alt.Tooltip(f"{metric}:Q", title=metric.capitalize(), format=",.2f"),
